@@ -1,0 +1,404 @@
+
+{%load static%}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>TO DO</title>
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+	{% comment %} <link href="css/mobiscroll.javascript.min.css" rel="stylesheet" />
+<script src="js/mobiscroll.javascript.min.js"></script> {% endcomment %}
+
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.20.0/js/mdb.min.js" integrity="sha512-XFd1m0eHgU1F05yOmuzEklFHtiacLVbtdBufAyZwFR0zfcq7vc6iJuxerGPyVFOXlPGgM8Uhem9gwzMI8SJ5uw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.20.0/css/mdb.lite.min.css" integrity="sha512-Eu5EEZpsrO6niYlnhT+ITom/YVGoIZGEsbAvZ+gUJsO3Xaq9+hX4vZnbecMn/Cq5KOdmNOdehu/U80111W9xsA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href={%static 'project_css/register.css'%} />
+<link rel="stylesheet" href={%static 'project_css/task.css'%} />
+    <head/>
+  
+
+<body>
+	{%include 'frontend/nav.html'%}
+    <div class="container-fluid">
+		<!-- Navbar -->
+
+
+		<div id="task-container">
+			<div id="form-wrapper">
+				<form id="form" >
+					{% csrf_token %}
+					<div class="flex-wrapper">
+						<div style="flex: 6" class="mr-3">
+							<div class="input-group">
+							<div class="input-group-append">
+								<span class="input-group-text"><i class="fas fa-key"></i></span>
+							</div>
+							<input id="title" class="form-control" type="text" name="title" placeholder="Add task">
+						</div>
+						</div>
+					
+						<div style="flex: 6" class="mr-3">
+							<div class="input-group">
+								<div class="input-group-append">
+									<span class="input-group-text"><i class="fas fa-key"></i></span>
+								</div>
+							<input id="date" class="form-control" type="date" name="date" placeholder="Add task">
+							</div>
+						</div>
+						<div style="flex: 1">
+							<button id="submit" type="button" class="btn btn-primary btn-sm rounded" onClick=createtask() >submit</button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<div id="list-wrapper">
+				
+            
+			</div>	
+		</div>
+
+	</div>
+	{%include 'frontend/deletemodal.html'%}
+    <script type="text/javascript">
+
+     
+		var task="default";
+		var date="default";
+		var check="default";
+		var id=null
+
+
+		function getCookie(name) {
+			var cookieValue = null;
+			if (document.cookie && document.cookie != '') {
+				var cookies = document.cookie.split(';');
+				for (var i = 0; i < cookies.length; i++) {
+					var cookie = jQuery.trim(cookies[i]);
+					// Does this cookie string begin with the name we want?
+					if (cookie.substring(0, name.length + 1) == (name + '=')) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+
+ 
+  
+		var activeItem = null
+		var list_snapshot = []
+        var userid={{user.id}}
+		buildList()
+        function handlecalender(){
+			window.location.replace(`http://localhost:8000/calendar/${userid}/`)
+				
+		}
+			
+			function buildList(){
+			var wrapper = document.getElementById('list-wrapper')
+			//wrapper.innerHTML = ''
+
+
+
+			var url = 'http://127.0.0.1:8000/task-list/'
+
+			fetch(url,{
+				method: 'POST',
+				body: JSON.stringify({
+		
+				  id:{{user.id}},
+			  
+			}),
+			headers: {
+				'Content-type': 'application/json; charset=UTF-8',
+			  }
+		})
+			.then((resp) => resp.json())
+			.then(function(data){
+				
+
+				var list = data
+				for (var i in list){
+
+
+					try{
+						document.getElementById(`data-row-${i}`).remove()
+					}catch(err){
+
+					}
+			
+
+                    var myobject=list[i]
+					console.log(myobject,"all objects")
+					var title = `<span class="title text-primary " >${list[i].task}</span>`
+					var check_element=`<input class="form-check-input" type="checkbox" onchange="getCheck(this)" id="completed" >`
+					var status=`<span class="badge badge-warning ml-2">pending</span>`
+					if (list[i].task_completed == true){
+						title = `<strike class="title text-primary " >${list[i].task}</strike>`
+						check_element=`<input class="form-check-input" type="checkbox" onchange="getCheck(this)" id="completed" checked>`
+						status=`<span class="badge badge-default ml-2">completed</span>`
+					}
+                   var date=list[i].task_date
+				   var parts =date.split('-')
+				   var currectdate=new Date(parts[0],parts[1],parts[2])
+				   //console.log(currectdate,"my date")
+					var item = `
+						<div id="data-row-${i}" class="task-wrapper flex-wrapper">
+							
+							<div style="flex:5" class="text_div ">
+								${title}
+							</div>
+							<div style="flex:2">
+								${status}
+							</div>
+							<div style="flex:3">
+								${list[i].task_date}
+							</div>
+							
+							
+							<div style="flex:1">
+								<button class="btn btn-sm btn-outline-info " data-toggle="modal" data-target="#modal${list[i].id}">Edit </button>
+							</div>
+							<div style="flex:1">
+								<button class="btn btn-sm  delete" data-toggle="modal" data-target="#deletemodal" onclick="setId(${list[i].id})">-</button>
+							</div>
+							
+						</div>
+						
+
+						<div class="modal fade" id="modal${list[i].id}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+						aria-hidden="true">
+						<div class="modal-dialog" role="document">
+						  <div class="modal-content">
+							<div class="modal-header text-center">
+							  <h4 class="modal-title w-100 font-weight-bold">Edit Task</h4>
+							  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							  </button>
+							</div>
+							<div class="modal-body mx-3">
+							  <div class="md-form mb-5">
+								<form  id="myform" >
+								<i class="fas fa-tasks prefix grey-text"></i>
+								<input type="text" id="task_edit" class="form-control validate" onchange="getTask(this.value)" value=${list[i].task}>
+								
+							  </div>
+					  
+							  <div class="md-form mb-5 child">
+								<i class="fas fa-calendar prefix grey-text"></i>
+								<input type="date" id="date_edit" value=${String(list[i].task_date)} onchange = "getDate(this.value)" class="form-control validate">
+								
+							  </div>
+					  
+							 
+					  
+							  <div class="form-check">
+								${check_element}
+								<label class="form-check-label" for="flexCheckDefault">
+								  completed
+								</label>
+							  </div>
+					  
+							</div>
+							<div class="modal-footer d-flex flex-column justify-content-center">
+							  <button type="button" class="btn btn-unique edit" onclick="editItem(${myobject.id})"  >Edit</button>
+							  <div class="text-warning fw-bold" id="error" ><div>
+							</div>
+						</form
+						
+						  </div>
+						</div>
+					  </div>
+
+					`
+					wrapper.innerHTML += item
+					
+	
+				}
+    
+				if (list_snapshot.length > list.length){
+					for (var i = list.length; i < list_snapshot.length; i++){
+						document.getElementById(`data-row-${i}`).remove()
+					}
+				}
+
+				list_snapshot = list
+
+
+
+			})
+		}
+		function setId(value){
+			id=value
+			console.log("delete id",id)
+		}
+
+		function delete_task(){
+
+			fetch(`http://localhost:8000/modelview/${id}/`,{
+				method: 'DELETE',
+				
+				headers: {
+				  'Content-type': 'application/json; charset=UTF-8',
+				  
+				}
+				}).then(function(response){
+					
+					return response.json()
+				
+				}).then(function(data){
+					console.log("delete data",data.msg)
+					buildList()
+				})
+		}
+
+		function getDate(value){
+
+			date=value
+			
+			console.log(date,"hope date")
+		}
+		function getTask(value){
+            task=value
+			
+			console.log(task,"hopetask")
+		}
+		function getCheck(checkbox){
+
+		
+
+			if (checkbox.checked) {
+				checkbox.value="completed"
+				check="completed"
+				console.log(check)
+			  } else {
+			
+				check="not completed"
+					console.log(check);
+			  }
+		}
+	
+       function editItem(myobject){
+	   	var task_edit;
+		var date_edit;
+		var check_edit;
+   
+   
+
+	   console.log(task,date,check)
+	   if(task=="default"){
+		
+		task_edit="default"
+	   }
+	   else{
+		task_edit=task
+	   }
+	   if(date=="default"){
+		date_edit="default"
+		
+	   }
+	   else{
+		date_edit=date
+	   }
+
+	   if(check=="default"){
+		check_edit="default"
+		
+	   }
+	   else{
+		check_edit=check
+	   }
+		fetch(`http://localhost:8000/modelview/${myobject}/`,{
+			method: 'PATCH',
+			body: JSON.stringify({
+		
+			  task:task_edit,
+			  task_date:date_edit,
+			  task_completed:check_edit
+		
+		
+		  
+			}),
+			headers: {
+			  'Content-type': 'application/json; charset=UTF-8',
+			  
+			}
+			}).then(function(response){
+				
+				return response.json()
+			
+			}).then(function(data){
+				console.log("edit data",data.msg)
+				if(data.msg !="no updations"){
+
+					var mymodals =document.getElementsByClassName("modal")
+					var backdrop=document.getElementsByClassName("modal-backdrop")
+					backdrop[0].remove()
+				while (mymodals.length > 0) {
+                         mymodals[0].remove();
+                        }
+					buildList()
+				
+					//mymodal.style.display="none";
+					//mymodal.modal('hide');
+					//$(`#modal${myobject}`).modal("toggle");
+					
+
+
+
+				}
+				else{
+               var sel=document.getElementById("error")
+			   console.log(sel)
+			   sel.innerHTML="<p>make some edits</p>";
+				}
+			
+			})
+
+	   }
+
+
+		function createtask(){
+			var task=document.getElementById("title").value
+			var date=document.getElementById("date").value
+			var csrftoken = getCookie('csrftoken');
+			console.log(date,"entered date",csrftoken)
+			
+			fetch('http://localhost:8000/modelview/', {
+				method: 'POST',
+				body: JSON.stringify({
+			
+				  task:task,
+				  task_date:date,
+				  user:{{user.id}}
+			
+			
+			  
+				}),
+				headers: {
+				  'Content-type': 'application/json; charset=UTF-8',
+				  'X-CSRF-Token': csrftoken
+				}
+				})
+				.then( function(response){ 
+					buildList()
+			
+				return response.json()
+				}).then(function(data){
+					console.log(data)
+				})
+			
+			  }
+			  
+
+
+    </script>
+</body>
+
+</html>

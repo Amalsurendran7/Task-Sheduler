@@ -1,0 +1,75 @@
+{%load static%}
+
+<html>
+    <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+	{% comment %} <link href="css/mobiscroll.javascript.min.css" rel="stylesheet" />
+<script src="js/mobiscroll.javascript.min.js"></script> {% endcomment %}
+
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.20.0/js/mdb.min.js" integrity="sha512-XFd1m0eHgU1F05yOmuzEklFHtiacLVbtdBufAyZwFR0zfcq7vc6iJuxerGPyVFOXlPGgM8Uhem9gwzMI8SJ5uw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.20.0/css/mdb.lite.min.css" integrity="sha512-Eu5EEZpsrO6niYlnhT+ITom/YVGoIZGEsbAvZ+gUJsO3Xaq9+hX4vZnbecMn/Cq5KOdmNOdehu/U80111W9xsA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href={% static 'css/mobiscroll.javascript.min.css'%} rel="stylesheet" />
+        <script src={% static 'js/mobiscroll.javascript.min.js' %}></script>
+    </head>
+    <body>
+        {%include 'frontend/nav.html'%}
+   
+        <div class="md-mobile-picker-inline m-5" style="margin-top:100px">
+            <div id="demo-mobile-picker-inline" style="margin-top:100px"></div>
+        </div>
+    </body>
+    <script>
+       var userid={{user}}
+       var taskdate=[]
+       var output_dates=[]
+       var check=[new Date(2023,3,24),new Date(2023,3,26)];
+        fetch('http://127.0.0.1:8000/getmydate/',{
+        method: 'POST',
+        body: JSON.stringify({
+
+          userid:userid,
+      
+    }),
+    headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      }
+})
+    .then((resp) => resp.json())
+    .then(function(data){
+       console.log(data.tasks)
+        var list=data.tasks
+        for(var i in list){
+            taskdate.push(list[i].task_date)
+        }
+        output_dates = taskdate.map(d => new Date(d));
+        console.log(taskdate,"got from django")
+console.log("change to date object",output_dates)
+console.log("check",check)
+
+mobiscroll.setOptions({
+    locale:  mobiscroll.localeEn,
+    theme: 'ios',
+    themeVariant: 'light'
+});
+  var instance = mobiscroll.datepicker('#demo-mobile-picker-inline', {
+    controls: ['calendar'],
+    display: 'inline',
+    selectMultiple: true,
+    defaultSelection:output_dates
+    
+});
+
+    })
+       // console.log(tasks,"tasks")
+        
+
+      
+        //instance.setVal(28,03,2023,true)
+        
+    </script>
+    </html>
